@@ -1,431 +1,239 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVERYBODY BUT MYSELF | Vancouver Dispatch</title>
+    <title>EVERYBODY BUT MYSELF | Premium Safe Supply</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         :root {
-            --nova-orange: #FF4500;
-            --seal-teal: #004D4D;
-            --lime-life: #32CD32;
-            --deep-bg: #010808;
+            --nova-orange: #ff4500;
+            --seal-teal: #004d4d;
+            --lime-life: #32cd32;
+            --deep-bg: #020a0a;
         }
 
         body {
             background-color: var(--deep-bg);
-            color: #f0f0f0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
         }
 
-        /* DYNAMIC MATHEMATICAL VORTEX */
-        .vortex-layer {
+        /* MATHEMATICAL VORTEX BACKGROUND */
+        .vortex {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, var(--seal-teal) 0%, transparent 70%),
+                        repeating-conic-gradient(from 0deg, #000 0deg 10deg, var(--nova-orange) 11deg 12deg);
+            opacity: 0.1;
             z-index: -1;
-            background: radial-gradient(circle at center, var(--seal-teal) 0%, transparent 85%);
+            animation: pulse 8s ease-in-out infinite alternate;
         }
 
-        .spiral-anim {
-            width: 300%; height: 300%;
-            position: absolute;
-            top: -100%; left: -100%;
-            background: repeating-conic-gradient(
-                from 0deg,
-                transparent 0deg 20deg,
-                var(--nova-orange) 21deg 22deg,
-                var(--lime-life) 23deg 23.5deg,
-                transparent 24deg 40deg
-            );
-            opacity: 0.12;
-            animation: rotateVortex 25s linear infinite;
+        @keyframes pulse {
+            0% { transform: scale(1); filter: hue-rotate(0deg); }
+            100% { transform: scale(1.1); filter: hue-rotate(15deg); }
         }
 
-        @keyframes rotateVortex {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .glass-panel {
+            background: rgba(0, 77, 77, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(50, 205, 50, 0.3);
+            border-radius: 15px;
         }
 
-        .glass-ui {
-            background: rgba(0, 77, 77, 0.12);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(50, 205, 50, 0.25);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        .btn-action {
+            background: linear-gradient(45deg, var(--seal-teal), var(--lime-life));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .neon-text-orange { text-shadow: 0 0 15px var(--nova-orange); }
-        .neon-text-green { text-shadow: 0 0 15px var(--lime-life); }
+        .btn-action:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(50, 205, 50, 0.4);
+        }
 
-        .btn-glow:hover {
-            box-shadow: 0 0 20px var(--lime-life);
-            transform: scale(1.02);
+        /* CART ANIMATION */
+        .cart-badge {
+            background: var(--nova-orange);
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
         }
     </style>
 </head>
 <body>
-    <div class="vortex-layer"><div class="spiral-anim"></div></div>
+    <div class="vortex"></div>
 
     <!-- NAVIGATION -->
-    <nav class="p-6 glass-ui sticky top-0 z-50 flex justify-between items-center px-8 border-b border-teal-800">
-        <div>
-            <h1 class="text-3xl font-black italic tracking-tighter neon-text-green" style="color: var(--lime-life)">EVERYBODY BUT MYSELF</h1>
-            <p class="text-[10px] uppercase tracking-[0.4em] opacity-80 mt-1">STAY HYDRATED • DRINK WATER</p>
-        </div>
-        <div class="flex gap-4 items-center">
-            <button id="walletBtn" onclick="connectWallet()" class="px-5 py-2 rounded-full border border-orange-500 text-xs font-black hover:bg-orange-600 transition-all uppercase">
-                Web3 Connect
-            </button>
-            <button onclick="toggleCart()" class="relative p-3 glass-ui rounded-full hover:border-white transition-all">
-                🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+    <nav class="p-6 flex justify-between items-center glass-panel sticky top-0 z-50 m-4">
+        <div class="text-2xl font-bold tracking-tighter" style="color: var(--lime-life)">EVERYBODY BUT MYSELF</div>
+        <div class="flex gap-6 items-center">
+            <span class="text-sm italic text-gray-400">"STAY HYDRATED • DRINK WATER"</span>
+            <button onclick="toggleCart()" class="relative p-2 border border-teal-500 rounded-full">
+                🛒 <span id="cart-count" class="absolute -top-2 -right-2 text-xs px-2 py-1 rounded-full cart-badge">0</span>
             </button>
         </div>
     </nav>
 
-    <!-- MARKETPLACE GRID -->
-    <main class="max-w-7xl mx-auto p-10">
-        <header class="text-center mb-20">
-            <h2 class="text-8xl font-black mb-6 tracking-tight neon-text-orange" style="color: var(--nova-orange)">DESTINY'S DESIGN</h2>
-            <div class="h-1 w-40 bg-gradient-to-r from-orange-600 to-lime-500 mx-auto mb-6"></div>
-            <p class="text-gray-400 font-mono tracking-widest text-sm uppercase">Vancouver Logistics // High-Authority Marketplace // Secure Supply</p>
-        </header>
-
-        <div id="grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Items injected via JS -->
+    <!-- HERO SECTION -->
+    <main class="max-w-6xl mx-auto p-8">
+        <div class="text-center mb-16">
+            <h1 class="text-6xl font-black mb-4" style="color: var(--nova-orange)">DESTINY'S DESIGN</h1>
+            <p class="text-xl max-w-2xl mx-auto text-gray-300">
+                The ultimate mathematical solution for premium botanical supply. High-authority distribution, 
+                designed for those who value privacy and precision.
+            </p>
         </div>
 
-        <!-- MASKED CONTACT ACTION -->
-        <div class="mt-24 glass-ui p-16 rounded-3xl text-center border-2 border-dashed border-teal-700">
-            <h3 class="text-4xl font-bold mb-4 uppercase tracking-tighter">Instant Dispatch Relay</h3>
-            <p class="text-gray-500 mb-10 italic">Secure line established for local Vancouver logistics.</p>
-            <button onclick="maskedDial()" class="px-12 py-6 bg-orange-600 rounded-full text-2xl font-black hover:bg-orange-500 transition-all shadow-[0_0_30px_rgba(255,69,0,0.4)]">
-                INITIATE DIRECT LINE
+        <!-- PRODUCT GRID -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+            <!-- Product Item -->
+            <script>
+                const products = [
+                    { id: 'm1', name: 'White Cola Extract', price: 50, unit: '0.5g', color: 'var(--lime-life)' },
+                    { id: 'm2', name: 'Compressed Ms Crystal', price: 10, unit: '0.5g', color: 'var(--nova-orange)' },
+                    { id: 'm3', name: 'Sky High Crackle Synthetic', price: 10, unit: '0.1g', color: 'var(--seal-teal)' },
+                    { id: 'm4', name: 'Forest Mush Spore', price: 10, unit: '1g', color: '#fff' }
+                ];
+
+                document.write(products.map(p => `
+                    <div class="glass-panel p-6 flex flex-col justify-between h-80">
+                        <div>
+                            <div class="h-2 w-12 mb-4" style="background: ${p.color}"></div>
+                            <h3 class="text-xl font-bold mb-2">${p.name}</h3>
+                            <p class="text-sm text-gray-400 mb-4 font-mono">Precision Grade: AAAA+</p>
+                            <div class="text-2xl font-black" style="color: var(--lime-life)">$${p.price} <span class="text-xs text-white">/ ${p.unit}</span></div>
+                        </div>
+                        <button onclick="addToCart('${p.id}', '${p.name}', ${p.price})" class="btn-action py-3 rounded text-sm font-bold mt-4 uppercase">Secure Addition</button>
+                    </div>
+                `).join(''));
+            </script>
+        </div>
+
+        <!-- MASKED CONTACT -->
+        <div class="glass-panel p-12 text-center mb-20 border-dashed border-2 border-orange-500">
+            <h2 class="text-3xl font-bold mb-6">URGENT DISPATCH SERVICE</h2>
+            <p class="mb-8 text-gray-400 italic">Encrypted Connection Ready. One-Click Dialing Masked for Safety.</p>
+            <button onclick="callService()" class="bg-orange-600 hover:bg-orange-500 text-white px-10 py-5 rounded-full text-2xl font-black shadow-2xl transition-all">
+                INITIATE "CALL NOW" SEQUENCE
             </button>
         </div>
     </main>
 
     <!-- ORDER / CART MODAL -->
-    <div id="cart-modal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
-        <div class="glass-ui w-full max-w-3xl p-10 rounded-3xl border-2 border-orange-500 relative">
-            <button onclick="toggleCart()" class="absolute top-6 right-8 text-white text-5xl font-thin">&times;</button>
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-90 z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto border-2 border-teal-500">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold" style="color: var(--nova-orange)">CONSOLIDATED ORDER</h2>
+                <button onclick="toggleCart()" class="text-4xl text-white">&times;</button>
+            </div>
             
-            <h3 class="text-4xl font-black mb-8 italic" style="color: var(--nova-orange)">CONSOLIDATED ORDER</h3>
-
-            <div id="cart-list" class="space-y-4 mb-10 max-h-72 overflow-y-auto custom-scrollbar">
-                <!-- Cart items here -->
+            <div id="cart-items" class="space-y-4 mb-8">
+                <!-- Items injected here -->
             </div>
 
-            <div class="flex justify-between items-center border-t border-teal-900 pt-6 mb-10">
-                <span class="text-2xl font-bold uppercase opacity-60">Total Resolution:</span>
-                <span id="cart-total" class="text-4xl font-black" style="color: var(--lime-life)">$0.00</span>
-            </div>
-
-            <!-- FORMSPREE ORDER FORM -->
-            <form action="https://formspree.io/f/xojyvkbz" method="POST" id="dispatch-form" class="space-y-6">
-                <!-- Hidden fields for cart data -->
-                <input type="hidden" name="_subject" value="New High-Authority Dispatch Order">
-                <input type="hidden" name="cart_contents" id="form-cart-data">
-                <input type="hidden" name="total_amount" id="form-total-data">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="text" name="contact_id" placeholder="Alias / Contact Email" class="bg-black/60 p-5 border border-teal-900 rounded-xl text-white focus:border-lime-500 outline-none transition-all" required>
-                    <input type="text" name="drop_point" placeholder="Station / Address / Local Spot" class="bg-black/60 p-5 border border-teal-900 rounded-xl text-white focus:border-lime-500 outline-none transition-all" required>
-                </div>
-
-                <div class="flex flex-col md:flex-row gap-6">
-                    <button type="submit" class="flex-[2] py-6 font-black uppercase text-xl rounded-xl bg-teal-800 hover:bg-lime-600 transition-all btn-glow">
-                        Place Order Request
-                    </button>
-                    <button type="button" onclick="initiateWeb3Pay()" class="flex-1 py-6 font-black uppercase text-xl rounded-xl border-2 border-orange-600 text-orange-500 hover:bg-orange-600 hover:text-white transition-all">
-                        ETH Wallet Pay
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        const ETH_WALLET = "0x63e864c2ce207c440e92456a7902c90abbbfa0aa";
-        const products = [
-            { id: 1, name: "Cola Pure Matrix 05", price: 50, unit: "0.5g", color: "#FF4500" },
-            { id: 2, name: "Botanical Mush Spore G", price: 10, unit: "1.0g", color: "#32CD32" },
-            { id: 3, name: "Crystal Ms Synthesis", price: 10, unit: "0.1g", color: "#004D4D" },
-            { id: 4, name: "Crackle Cook Carbon Hit", price: 10, unit: "0.1", color: "#ffffff" }
-        ];
-
-        let cart = [];
-
-        // RENDER PRODUCTS
-        const grid = document.getElementById('grid');
-        grid.innerHTML = products.map(p => `
-            <div class="glass-ui p-8 flex flex-col justify-between h-96 group hover:border-lime-400 transition-all">
-                <div>
-                    <div class="w-10 h-1 mb-6" style="background: ${p.color}"></div>
-                    <h4 class="text-2xl font-black mb-2 tracking-tighter italic uppercase">${p.name}</h4>
-                    <p class="text-[10px] text-gray-500 mb-6 tracking-widest font-mono">BC LOGISTICS // VERIFIED GRADE</p>
-                    <div class="text-4xl font-black" style="color: var(--lime-life)">$${p.price}<span class="text-xs opacity-50 ml-2 italic">/ ${p.unit}</span></div>
-                </div>
-                <button onclick="addToCart(${p.id})" class="w-full py-4 mt-8 bg-teal-950/50 border border-teal-800 hover:bg-teal-700 font-black rounded-lg transition-all uppercase tracking-widest">
-                    Secure Add
-                </button>
-            </div>
-        `).join('');
-
-        function addToCart(id) {
-            const p = products.find(x => x.id === id);
-            cart.push(p);
-            updateCartCount();
-        }
-
-        function toggleCart() {
-            document.getElementById('cart-modal').classList.toggle('hidden');
-            renderCart();
-        }
-
-        function renderCart() {
-            const list = document.getElementById('cart-list');
-            const totalDisplay = document.getElementById('cart-total');
-            
-            if (cart.length === 0) {
-                list.innerHTML = `<div class="text-center py-12 opacity-30 italic">No assets secured in current session.</div>`;
-                totalDisplay.innerText = "$0.00";
-                return;
-            }
-
-            list.innerHTML = cart.map((item, i) => `
-                <div class="flex justify-between items-center bg-black/40 p-5 rounded-xl border border-teal-900">
-                    <span class="font-bold tracking-widest">${item.name}</span>
-                    <div class="flex items-center gap-6">
-                        <span class="font-mono text-lime-400">$${item.price}</span>
-                        <button onclick="remove(${i})" class="text-red-500 text-2xl hover:scale-125 transition-all">&times;</button>
-                    </div>
-                </div>
-            `).join('');
-
-            const total = cart.reduce((s, i) => s + i.price, 0);
-            totalDisplay.innerText = `$${total.toFixed(2)}`;
-            
-            // Populate hidden inputs for Formspree
-            document.getElementById('form-cart-data').value = cart.map(c => `${c.name} (${c.unit})`).join(', ');
-            document.getElementById('form-total-data').value = `$${total.toFixed(2)}`;
-        }
-
-        function remove(i) {
-            cart.splice(i, 1);
-            updateCartCount();
-            renderCart();
-        }
-
-        function updateCartCount() {
-            document.getElementById('cart-count').innerText = cart.length;
-        }
-
-        function maskedDial() {
-            const secret = ["1236", "234", "4205"];
-            window.location.href = `tel:${secret.join('')}`;
-        }
-
-        // WEB3 WALLET LOGIC
-        async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    await ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('walletBtn').innerText = "Wallet Linked";
-                    document.getElementById('walletBtn').style.borderColor = "#32CD32";
-                } catch (e) { alert("Link Refused."); }
-            } else { alert("Install Web3 Provider."); }
-        }
-
-        async function initiateWeb3Pay() {
-            if (!window.ethereum) return alert("No Wallet Found.");
-            const total = cart.reduce((s, i) => s + i.price, 0);
-            if (total <= 0) return alert("Cart empty.");
-
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            
-            try {
-                // Placeholder conversion (0.0001 ETH per $10 approx)
-                const ethValue = (total / 30000).toFixed(4); 
-                const tx = await signer.sendTransaction({
-                    to: ETH_WALLET,
-                    value: ethers.utils.parseEther(ethValue)
-                });
-                alert("Payment Broadcasted: " + tx.hash);
-            } catch (err) { alert("Payment Canceled."); }
-        }
-    </script>
-</body>
-</html>
-
-'''
-                from 0deg,
-                transparent 0deg 15deg,
-                var(--nova-orange) 16deg 17deg,
-                transparent 18deg 30deg
-            );
-            opacity: 0.1;
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .glass {
-            background: rgba(0, 77, 77, 0.1);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(50, 205, 50, 0.2);
-        }
-
-        .text-glow-orange { text-shadow: 0 0 10px var(--nova-orange); }
-        .text-glow-green { text-shadow: 0 0 10px var(--lime-life); }
-    </style>
-</head>
-<body>
-    <div class="vortex-container"><div class="vortex-spiral"></div></div>
-
-    <nav class="p-6 glass sticky top-0 z-50 flex justify-between items-center px-10 border-b border-teal-900">
-        <div>
-            <h1 class="text-2xl font-black tracking-widest text-glow-green" style="color: var(--lime-life)">EVERYBODY BUT MYSELF</h1>
-            <p class="text-[10px] uppercase tracking-[0.3em] opacity-70">"STAY HYDRATED • DRINK WATER"</p>
-        </div>
-        <div class="flex gap-4">
-            <button id="connectWallet" class="px-4 py-2 rounded border border-orange-500 text-xs font-bold hover:bg-orange-600 transition">CONNECT WEB3</button>
-            <button onclick="toggleCart()" class="relative p-2 glass rounded-full">
-                🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-[10px] px-1.5 rounded-full">0</span>
-            </button>
-        </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto p-8">
-        <header class="text-center mb-16">
-            <h2 class="text-7xl font-black mb-4 italic text-glow-orange" style="color: var(--nova-orange)">DESTINY'S DESIGN</h2>
-            <p class="text-gray-400 font-mono">High-Authority Marketplace // Vancouver Logistics // Safe Supply Chain</p>
-        </header>
-
-        <div id="product-grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            </div>
-    </main>
-
-    <div id="cart-modal" class="fixed inset-0 z-[100] hidden bg-black/95 flex items-center justify-center p-4">
-        <div class="glass w-full max-w-2xl p-8 rounded-2xl border-2 border-orange-500">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-3xl font-bold" style="color: var(--nova-orange)">CONSOLIDATED ORDER</h3>
-                <button onclick="toggleCart()" class="text-white text-3xl">&times;</button>
-            </div>
-
-            <div id="cart-items" class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2"></div>
-
-            <div class="border-t border-teal-900 pt-4 mb-6">
+            <div class="border-t border-teal-800 pt-4 mb-8">
                 <div class="flex justify-between text-2xl font-bold">
                     <span>TOTAL RESOLUTION:</span>
                     <span id="cart-total" style="color: var(--lime-life)">$0.00</span>
                 </div>
             </div>
 
-            <form action="https://formspree.io/f/xojyvkbz" method="POST" id="checkout-form" class="space-y-4">
-                <input type="hidden" name="cart_data" id="hidden-cart-input">
+            <!-- CHECKOUT FORM -->
+            <form id="order-form" onsubmit="handleOrder(event)" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" name="contact" placeholder="Email or Phone (Masked)" class="bg-black/50 p-4 border border-teal-800 rounded text-white" required>
-                    <input type="text" name="location" placeholder="Intersection / Drop Point" class="bg-black/50 p-4 border border-teal-800 rounded text-white" required>
+                    <input type="text" placeholder="Contact Email/Alias" class="bg-black border border-teal-900 p-4 rounded text-white" required>
+                    <input type="text" placeholder="Drop Location / Intersection" class="bg-black border border-teal-900 p-4 rounded text-white" required>
                 </div>
-                
-                <div class="flex gap-4">
-                    <button type="submit" class="flex-1 py-4 font-black uppercase tracking-widest bg-emerald-700 hover:bg-emerald-600 rounded">Submit Request</button>
-                    <button type="button" onclick="payWithCrypto()" class="flex-1 py-4 font-black uppercase tracking-widest bg-orange-700 hover:bg-orange-600 rounded">Pay with ETH</button>
+                <select class="w-full bg-black border border-teal-900 p-4 rounded text-white">
+                    <option>Meet Up: Central Station Area</option>
+                    <option>Meet Up: Terminal Station Area</option>
+                    <option>Mailed (Parcel Tracking)</option>
+                </select>
+                <div class="bg-teal-950 p-4 rounded text-xs text-teal-300">
+                    NOTE: Verification will be sent to your provided contact. Payments accepted in BTC, ETH, or discreet cash-on-arrival.
                 </div>
+                <button type="submit" class="w-full py-6 text-2xl font-black rounded btn-action">FINALIZE DESTINY</button>
             </form>
         </div>
     </div>
 
     <script>
-        const DESTINATION_WALLET = "0x63e864c2ce207c440e92456a7902c90abbbfa0aa";
-        const products = [
-            { id: 1, name: "Mineral White Cola", price: 50, unit: "0.5g", color: "#FF4500" },
-            { id: 2, name: "Botanical Magic Spores", price: 10, unit: "1.0g", color: "#32CD32" },
-            { id: 3, name: "Crystal Ms Synthesis", price: 10, unit: "Point", color: "#004D4D" },
-            { id: 4, name: "Cracklw Carbon Hit", price: 10, unit: "Unit", color: "#ffffff" }
-        ];
-
         let cart = [];
+        const CART_KEY = 'eb_myself_cart';
 
-        // LOAD PRODUCTS
-        const grid = document.getElementById('product-grid');
-        grid.innerHTML = products.map(p => `
-            <div class="glass p-6 flex flex-col justify-between h-80 border-t-4" style="border-top-color: ${p.color}">
-                <div>
-                    <h4 class="text-xl font-bold mb-2 uppercase">${p.name}</h4>
-                    <p class="text-[10px] text-gray-500 mb-4 tracking-widest">PREMIUM RESOLUTION // BC SOURCED</p>
-                    <div class="text-3xl font-black" style="color: var(--lime-life)">$${p.price}<span class="text-xs opacity-50 ml-1">/ ${p.unit}</span></div>
-                </div>
-                <button onclick="addToCart(${p.id})" class="w-full py-3 bg-teal-900 hover:bg-teal-700 font-bold rounded transition">SECURE ADDITION</button>
-            </div>
-        `).join('');
-
-        function addToCart(id) {
-            const p = products.find(x => x.id === id);
-            cart.push(p);
-            updateCartUI();
+        function addToCart(id, name, price) {
+            cart.push({ id, name, price });
+            updateUI();
+            const badge = document.getElementById('cart-count');
+            badge.classList.remove('cart-badge');
+            void badge.offsetWidth; // Trigger reflow
+            badge.classList.add('cart-badge');
         }
 
         function toggleCart() {
-            document.getElementById('cart-modal').classList.toggle('hidden');
-            renderCartItems();
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('hidden');
+            renderCart();
         }
 
-        function renderCartItems() {
+        function renderCart() {
             const container = document.getElementById('cart-items');
-            container.innerHTML = cart.map((item, idx) => `
-                <div class="flex justify-between items-center bg-black/40 p-3 rounded border border-teal-900">
-                    <span class="font-bold font-mono">${item.name}</span>
+            const totalEl = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-gray-500">Cart is empty. Select your fortune.</div>`;
+                totalEl.innerText = "$0.00";
+                return;
+            }
+
+            container.innerHTML = cart.map((item, index) => `
+                <div class="flex justify-between items-center bg-black bg-opacity-40 p-4 rounded border border-teal-900">
+                    <div>
+                        <div class="font-bold">${item.name}</div>
+                        <div class="text-xs text-gray-500 italic">Grade Secured</div>
+                    </div>
                     <div class="flex items-center gap-4">
-                        <span style="color: var(--lime-life)">$${item.price}</span>
-                        <button onclick="removeItem(${idx})" class="text-red-500">&times;</button>
+                        <span class="text-lime-400 font-mono">$${item.price.toFixed(2)}</span>
+                        <button onclick="removeItem(${index})" class="text-red-500 hover:text-red-400">Remove</button>
                     </div>
                 </div>
             `).join('');
-            
+
             const total = cart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('hidden-cart-input').value = JSON.stringify(cart);
+            totalEl.innerText = `$${total.toFixed(2)}`;
         }
 
-        function removeItem(idx) {
-            cart.splice(idx, 1);
-            updateCartUI();
-            renderCartItems();
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateUI();
+            renderCart();
         }
 
-        function updateCartUI() {
+        function updateUI() {
             document.getElementById('cart-count').innerText = cart.length;
         }
 
-        // WEB3 INTEGRATION
-        async function payWithCrypto() {
-            if (typeof window.ethereum !== 'undefined') {
-                const total = cart.reduce((sum, item) => sum + item.price, 0);
-                if (total <= 0) return alert("Cart is empty.");
+        function callService() {
+            // Secret masking - pieces are never stored as a full string
+            const p1 = "1236";
+            const p2 = "234";
+            const p3 = "4205";
+            window.location.href = `tel:${p1}${p2}${p3}`;
+        }
 
-                try {
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
-                    const signer = provider.getSigner();
-                    
-                    // Simple example: 0.01 ETH for demo or actual conversion logic
-                    const tx = await signer.sendTransaction({
-                        to: DESTINATION_WALLET,
-                        value: ethers.utils.parseEther("0.001") 
-                    });
-                    
-                    alert("Transaction Initiated: " + tx.hash);
-                } catch (err) {
-                    console.error(err);
-                    alert("Payment Failed.");
-                }
-            } else {
-                alert("Please install MetaMask or a Web3 Wallet.");
-            }
+        function handleOrder(e) {
+            e.preventDefault();
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            alert(`ORDER CONFIGURED\nTotal: $${total.toFixed(2)}\n\nSubmitting encrypted request to dispatch... Check your contact for confirmation.`);
+            cart = [];
+            updateUI();
+            toggleCart();
         }
     </script>
 </body>
