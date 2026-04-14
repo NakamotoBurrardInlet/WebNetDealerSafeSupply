@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVERYBODY BUT MYSELF | Premium Substances</title>
+    <title>EVERYBODY BUT MYSELF | Vancouver Dispatch</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
@@ -17,23 +17,250 @@
         body {
             background-color: var(--deep-bg);
             color: #f0f0f0;
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             overflow-x: hidden;
         }
 
-        /* MATHEMATICAL VORTEX BACKGROUND */
-        .vortex-container {
+        /* DYNAMIC MATHEMATICAL VORTEX */
+        .vortex-layer {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            background: radial-gradient(circle at 50% 50%, var(--seal-teal) 0%, transparent 80%);
+            background: radial-gradient(circle at center, var(--seal-teal) 0%, transparent 85%);
         }
 
-        .vortex-spiral {
-            width: 200%; height: 200%;
+        .spiral-anim {
+            width: 300%; height: 300%;
             position: absolute;
-            top: -50%; left: -50%;
+            top: -100%; left: -100%;
             background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg 20deg,
+                var(--nova-orange) 21deg 22deg,
+                var(--lime-life) 23deg 23.5deg,
+                transparent 24deg 40deg
+            );
+            opacity: 0.12;
+            animation: rotateVortex 25s linear infinite;
+        }
+
+        @keyframes rotateVortex {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .glass-ui {
+            background: rgba(0, 77, 77, 0.12);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(50, 205, 50, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .neon-text-orange { text-shadow: 0 0 15px var(--nova-orange); }
+        .neon-text-green { text-shadow: 0 0 15px var(--lime-life); }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px var(--lime-life);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="vortex-layer"><div class="spiral-anim"></div></div>
+
+    <!-- NAVIGATION -->
+    <nav class="p-6 glass-ui sticky top-0 z-50 flex justify-between items-center px-8 border-b border-teal-800">
+        <div>
+            <h1 class="text-3xl font-black italic tracking-tighter neon-text-green" style="color: var(--lime-life)">EVERYBODY BUT MYSELF</h1>
+            <p class="text-[10px] uppercase tracking-[0.4em] opacity-80 mt-1">STAY HYDRATED • DRINK WATER</p>
+        </div>
+        <div class="flex gap-4 items-center">
+            <button id="walletBtn" onclick="connectWallet()" class="px-5 py-2 rounded-full border border-orange-500 text-xs font-black hover:bg-orange-600 transition-all uppercase">
+                Web3 Connect
+            </button>
+            <button onclick="toggleCart()" class="relative p-3 glass-ui rounded-full hover:border-white transition-all">
+                🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MARKETPLACE GRID -->
+    <main class="max-w-7xl mx-auto p-10">
+        <header class="text-center mb-20">
+            <h2 class="text-8xl font-black mb-6 tracking-tight neon-text-orange" style="color: var(--nova-orange)">DESTINY'S DESIGN</h2>
+            <div class="h-1 w-40 bg-gradient-to-r from-orange-600 to-lime-500 mx-auto mb-6"></div>
+            <p class="text-gray-400 font-mono tracking-widest text-sm uppercase">Vancouver Logistics // High-Authority Marketplace // Secure Supply</p>
+        </header>
+
+        <div id="grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Items injected via JS -->
+        </div>
+
+        <!-- MASKED CONTACT ACTION -->
+        <div class="mt-24 glass-ui p-16 rounded-3xl text-center border-2 border-dashed border-teal-700">
+            <h3 class="text-4xl font-bold mb-4 uppercase tracking-tighter">Instant Dispatch Relay</h3>
+            <p class="text-gray-500 mb-10 italic">Secure line established for local Vancouver logistics.</p>
+            <button onclick="maskedDial()" class="px-12 py-6 bg-orange-600 rounded-full text-2xl font-black hover:bg-orange-500 transition-all shadow-[0_0_30px_rgba(255,69,0,0.4)]">
+                INITIATE DIRECT LINE
+            </button>
+        </div>
+    </main>
+
+    <!-- ORDER / CART MODAL -->
+    <div id="cart-modal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
+        <div class="glass-ui w-full max-w-3xl p-10 rounded-3xl border-2 border-orange-500 relative">
+            <button onclick="toggleCart()" class="absolute top-6 right-8 text-white text-5xl font-thin">&times;</button>
+            
+            <h3 class="text-4xl font-black mb-8 italic" style="color: var(--nova-orange)">CONSOLIDATED ORDER</h3>
+
+            <div id="cart-list" class="space-y-4 mb-10 max-h-72 overflow-y-auto custom-scrollbar">
+                <!-- Cart items here -->
+            </div>
+
+            <div class="flex justify-between items-center border-t border-teal-900 pt-6 mb-10">
+                <span class="text-2xl font-bold uppercase opacity-60">Total Resolution:</span>
+                <span id="cart-total" class="text-4xl font-black" style="color: var(--lime-life)">$0.00</span>
+            </div>
+
+            <!-- FORMSPREE ORDER FORM -->
+            <form action="https://formspree.io/f/xojyvkbz" method="POST" id="dispatch-form" class="space-y-6">
+                <!-- Hidden fields for cart data -->
+                <input type="hidden" name="_subject" value="New High-Authority Dispatch Order">
+                <input type="hidden" name="cart_contents" id="form-cart-data">
+                <input type="hidden" name="total_amount" id="form-total-data">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="text" name="contact_id" placeholder="Alias / Contact Email" class="bg-black/60 p-5 border border-teal-900 rounded-xl text-white focus:border-lime-500 outline-none transition-all" required>
+                    <input type="text" name="drop_point" placeholder="Vancouver Intersection / Station" class="bg-black/60 p-5 border border-teal-900 rounded-xl text-white focus:border-lime-500 outline-none transition-all" required>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <button type="submit" class="flex-[2] py-6 font-black uppercase text-xl rounded-xl bg-teal-800 hover:bg-lime-600 transition-all btn-glow">
+                        Place Order Request
+                    </button>
+                    <button type="button" onclick="initiateWeb3Pay()" class="flex-1 py-6 font-black uppercase text-xl rounded-xl border-2 border-orange-600 text-orange-500 hover:bg-orange-600 hover:text-white transition-all">
+                        ETH Wallet Pay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const ETH_WALLET = "0x63e864c2ce207c440e92456a7902c90abbbfa0aa";
+        const products = [
+            { id: 1, name: "Mineral Matrix 05", price: 50, unit: "0.5g", color: "#FF4500" },
+            { id: 2, name: "Botanical Spore G", price: 10, unit: "1.0g", color: "#32CD32" },
+            { id: 3, name: "Crystal Synthesis", price: 10, unit: "0.1g", color: "#004D4D" },
+            { id: 4, name: "Neon Carbon Hit", price: 10, unit: "Unit", color: "#ffffff" }
+        ];
+
+        let cart = [];
+
+        // RENDER PRODUCTS
+        const grid = document.getElementById('grid');
+        grid.innerHTML = products.map(p => `
+            <div class="glass-ui p-8 flex flex-col justify-between h-96 group hover:border-lime-400 transition-all">
+                <div>
+                    <div class="w-10 h-1 mb-6" style="background: ${p.color}"></div>
+                    <h4 class="text-2xl font-black mb-2 tracking-tighter italic uppercase">${p.name}</h4>
+                    <p class="text-[10px] text-gray-500 mb-6 tracking-widest font-mono">BC LOGISTICS // VERIFIED GRADE</p>
+                    <div class="text-4xl font-black" style="color: var(--lime-life)">$${p.price}<span class="text-xs opacity-50 ml-2 italic">/ ${p.unit}</span></div>
+                </div>
+                <button onclick="addToCart(${p.id})" class="w-full py-4 mt-8 bg-teal-950/50 border border-teal-800 hover:bg-teal-700 font-black rounded-lg transition-all uppercase tracking-widest">
+                    Secure Add
+                </button>
+            </div>
+        `).join('');
+
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            cart.push(p);
+            updateCartCount();
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-modal').classList.toggle('hidden');
+            renderCart();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            const totalDisplay = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 opacity-30 italic">No assets secured in current session.</div>`;
+                totalDisplay.innerText = "$0.00";
+                return;
+            }
+
+            list.innerHTML = cart.map((item, i) => `
+                <div class="flex justify-between items-center bg-black/40 p-5 rounded-xl border border-teal-900">
+                    <span class="font-bold tracking-widest">${item.name}</span>
+                    <div class="flex items-center gap-6">
+                        <span class="font-mono text-lime-400">$${item.price}</span>
+                        <button onclick="remove(${i})" class="text-red-500 text-2xl hover:scale-125 transition-all">&times;</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            totalDisplay.innerText = `$${total.toFixed(2)}`;
+            
+            // Populate hidden inputs for Formspree
+            document.getElementById('form-cart-data').value = cart.map(c => `${c.name} (${c.unit})`).join(', ');
+            document.getElementById('form-total-data').value = `$${total.toFixed(2)}`;
+        }
+
+        function remove(i) {
+            cart.splice(i, 1);
+            updateCartCount();
+            renderCart();
+        }
+
+        function updateCartCount() {
+            document.getElementById('cart-count').innerText = cart.length;
+        }
+
+        function maskedDial() {
+            const secret = ["1236", "234", "4205"];
+            window.location.href = `tel:${secret.join('')}`;
+        }
+
+        // WEB3 WALLET LOGIC
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    await ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('walletBtn').innerText = "Wallet Linked";
+                    document.getElementById('walletBtn').style.borderColor = "#32CD32";
+                } catch (e) { alert("Link Refused."); }
+            } else { alert("Install Web3 Provider."); }
+        }
+
+        async function initiateWeb3Pay() {
+            if (!window.ethereum) return alert("No Wallet Found.");
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            if (total <= 0) return alert("Cart empty.");
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            
+            try {
+                // Placeholder conversion (0.0001 ETH per $10 approx)
+                const ethValue = (total / 30000).toFixed(4); 
+                const tx = await signer.sendTransaction({
+                    to: ETH_WALLET,
+                    value: ethers.utils.parseEther(ethValue)
+                });
+                alert("Payment Broadcasted: " + tx.hash);
+            } catch (err) { alert("Payment Canceled."); }
+        }
+    </script>
+</body>
+</html>
+
+```
                 from 0deg,
                 transparent 0deg 15deg,
                 var(--nova-orange) 16deg 17deg,
