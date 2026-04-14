@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVERYBODY BUT MYSELF | Premium Substances</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        :root {
+            --nova-orange: #FF4500;
+            --seal-teal: #004D4D;
+            --lime-life: #32CD32;
+            --deep-bg: #010808;
+        }
+
+        body {
+            background-color: var(--deep-bg);
+            color: #f0f0f0;
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* MATHEMATICAL VORTEX BACKGROUND */
+        .vortex-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, var(--seal-teal) 0%, transparent 80%);
+        }
+
+        .vortex-spiral {
+            width: 200%; height: 200%;
+            position: absolute;
+            top: -50%; left: -50%;
+            background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg 15deg,
+                var(--nova-orange) 16deg 17deg,
+                transparent 18deg 30deg
+            );
+            opacity: 0.1;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .glass {
+            background: rgba(0, 77, 77, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(50, 205, 50, 0.2);
+        }
+
+        .text-glow-orange { text-shadow: 0 0 10px var(--nova-orange); }
+        .text-glow-green { text-shadow: 0 0 10px var(--lime-life); }
+    </style>
+</head>
+<body>
+    <div class="vortex-container"><div class="vortex-spiral"></div></div>
+
+    <nav class="p-6 glass sticky top-0 z-50 flex justify-between items-center px-10 border-b border-teal-900">
+        <div>
+            <h1 class="text-2xl font-black tracking-widest text-glow-green" style="color: var(--lime-life)">EVERYBODY BUT MYSELF</h1>
+            <p class="text-[10px] uppercase tracking-[0.3em] opacity-70">"STAY HYDRATED • DRINK WATER"</p>
+        </div>
+        <div class="flex gap-4">
+            <button id="connectWallet" class="px-4 py-2 rounded border border-orange-500 text-xs font-bold hover:bg-orange-600 transition">CONNECT WEB3</button>
+            <button onclick="toggleCart()" class="relative p-2 glass rounded-full">
+                🛒 <span id="cart-count" class="absolute -top-1 -right-1 bg-orange-600 text-[10px] px-1.5 rounded-full">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
+        <header class="text-center mb-16">
+            <h2 class="text-7xl font-black mb-4 italic text-glow-orange" style="color: var(--nova-orange)">DESTINY'S DESIGN</h2>
+            <p class="text-gray-400 font-mono">High-Authority Marketplace // Vancouver Logistics // Safe Supply Chain</p>
+        </header>
+
+        <div id="product-grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            </div>
+    </main>
+
+    <div id="cart-modal" class="fixed inset-0 z-[100] hidden bg-black/95 flex items-center justify-center p-4">
+        <div class="glass w-full max-w-2xl p-8 rounded-2xl border-2 border-orange-500">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-3xl font-bold" style="color: var(--nova-orange)">CONSOLIDATED ORDER</h3>
+                <button onclick="toggleCart()" class="text-white text-3xl">&times;</button>
+            </div>
+
+            <div id="cart-items" class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2"></div>
+
+            <div class="border-t border-teal-900 pt-4 mb-6">
+                <div class="flex justify-between text-2xl font-bold">
+                    <span>TOTAL RESOLUTION:</span>
+                    <span id="cart-total" style="color: var(--lime-life)">$0.00</span>
+                </div>
+            </div>
+
+            <form action="https://formspree.io/f/onemailboxeric@gmail.com" method="POST" id="checkout-form" class="space-y-4">
+                <input type="hidden" name="cart_data" id="hidden-cart-input">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" name="contact" placeholder="Email or Phone (Masked)" class="bg-black/50 p-4 border border-teal-800 rounded text-white" required>
+                    <input type="text" name="location" placeholder="Intersection / Drop Point" class="bg-black/50 p-4 border border-teal-800 rounded text-white" required>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 py-4 font-black uppercase tracking-widest bg-emerald-700 hover:bg-emerald-600 rounded">Submit Request</button>
+                    <button type="button" onclick="payWithCrypto()" class="flex-1 py-4 font-black uppercase tracking-widest bg-orange-700 hover:bg-orange-600 rounded">Pay with ETH</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const DESTINATION_WALLET = "0x63e864c2ce207c440e92456a7902c90abbbfa0aa";
+        const products = [
+            { id: 1, name: "Mineral White Cola", price: 50, unit: "0.5g", color: "#FF4500" },
+            { id: 2, name: "Botanical Magic Spores", price: 10, unit: "1.0g", color: "#32CD32" },
+            { id: 3, name: "Crystal Ms Synthesis", price: 10, unit: "Point", color: "#004D4D" },
+            { id: 4, name: "Cracklw Carbon Hit", price: 10, unit: "Unit", color: "#ffffff" }
+        ];
+
+        let cart = [];
+
+        // LOAD PRODUCTS
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = products.map(p => `
+            <div class="glass p-6 flex flex-col justify-between h-80 border-t-4" style="border-top-color: ${p.color}">
+                <div>
+                    <h4 class="text-xl font-bold mb-2 uppercase">${p.name}</h4>
+                    <p class="text-[10px] text-gray-500 mb-4 tracking-widest">PREMIUM RESOLUTION // BC SOURCED</p>
+                    <div class="text-3xl font-black" style="color: var(--lime-life)">$${p.price}<span class="text-xs opacity-50 ml-1">/ ${p.unit}</span></div>
+                </div>
+                <button onclick="addToCart(${p.id})" class="w-full py-3 bg-teal-900 hover:bg-teal-700 font-bold rounded transition">SECURE ADDITION</button>
+            </div>
+        `).join('');
+
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            cart.push(p);
+            updateCartUI();
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-modal').classList.toggle('hidden');
+            renderCartItems();
+        }
+
+        function renderCartItems() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = cart.map((item, idx) => `
+                <div class="flex justify-between items-center bg-black/40 p-3 rounded border border-teal-900">
+                    <span class="font-bold font-mono">${item.name}</span>
+                    <div class="flex items-center gap-4">
+                        <span style="color: var(--lime-life)">$${item.price}</span>
+                        <button onclick="removeItem(${idx})" class="text-red-500">&times;</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('cart-total').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('hidden-cart-input').value = JSON.stringify(cart);
+        }
+
+        function removeItem(idx) {
+            cart.splice(idx, 1);
+            updateCartUI();
+            renderCartItems();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+        }
+
+        // WEB3 INTEGRATION
+        async function payWithCrypto() {
+            if (typeof window.ethereum !== 'undefined') {
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                if (total <= 0) return alert("Cart is empty.");
+
+                try {
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    const signer = provider.getSigner();
+                    
+                    // Simple example: 0.01 ETH for demo or actual conversion logic
+                    const tx = await signer.sendTransaction({
+                        to: DESTINATION_WALLET,
+                        value: ethers.utils.parseEther("0.001") 
+                    });
+                    
+                    alert("Transaction Initiated: " + tx.hash);
+                } catch (err) {
+                    console.error(err);
+                    alert("Payment Failed.");
+                }
+            } else {
+                alert("Please install MetaMask or a Web3 Wallet.");
+            }
+        }
+    </script>
+</body>
+</html>
